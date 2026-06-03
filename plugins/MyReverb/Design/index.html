@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MyReverb v4</title>
+  <style>
+    :root {
+      --chassis: #3A3228;
+      --chassis-edge: #2A241C;
+      --bg-panel: #EDE6D6;
+      --brown: #4F3F32;
+      --charcoal: #1F1F1F;
+      --copper: #A66B35;
+      --emi-red: #7A2230;
+      --vu-red: #9E2A32;
+      --vu-green: #5A8A62;
+      --knob-cap: #E8E2D8;
+      --vu-glass: #D8D0C0;
+      --screw: #8A8278;
+      --plate-metal: linear-gradient(145deg, #D4CEC4 0%, #A8A298 45%, #8A8478 100%);
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 580px;
+      height: 600px;
+      overflow: hidden;
+      background: #141210;
+      user-select: none;
+    }
+
+    #rack-chassis {
+      width: 580px;
+      height: 600px;
+      padding: 10px;
+      background: linear-gradient(165deg, #4A4034 0%, var(--chassis) 40%, var(--chassis-edge) 100%);
+      box-shadow: 0 8px 32px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.08);
+      border-radius: 4px;
+    }
+
+    #faceplate {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      background-color: var(--bg-panel);
+      background-image:
+        url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+      box-shadow: inset 0 4px 12px rgba(0,0,0,0.12), inset 0 0 0 1px rgba(255,255,255,0.35);
+      border-radius: 2px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 12px 18px 20px;
+      overflow: visible;
+    }
+
+    .controls-area {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      flex-shrink: 0;
+    }
+
+    .screw {
+      position: absolute;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 30% 28%, #B5AD9E, var(--screw) 55%, #5A5248);
+      border: 1px solid #4A443C;
+    }
+    .screw::after {
+      content: '';
+      position: absolute;
+      top: 50%; left: 15%; right: 15%;
+      height: 1px;
+      background: #2A241C;
+      transform: translateY(-50%);
+    }
+    .screw.tl { top: 12px; left: 12px; }
+    .screw.tr { top: 12px; right: 12px; }
+    .screw.bl { bottom: 12px; left: 12px; }
+    .screw.br { bottom: 12px; right: 12px; }
+
+    .header-band {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      width: 100%;
+      max-width: 520px;
+      margin-bottom: 6px;
+      gap: 8px;
+    }
+
+    .metal-plate {
+      padding: 6px 10px;
+      background: var(--plate-metal);
+      border: 1px solid #6A6458;
+      border-radius: 2px;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.5), 0 1px 3px rgba(0,0,0,0.25);
+      min-width: 108px;
+    }
+    .metal-plate.serial { min-width: 92px; text-align: right; }
+    .metal-plate .plate-line1 {
+      font-family: 'Franklin Gothic Medium', sans-serif;
+      font-size: 8px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      color: var(--charcoal);
+      text-transform: uppercase;
+    }
+    .metal-plate .plate-line2 {
+      font-size: 7px;
+      letter-spacing: 0.06em;
+      color: #5A5248;
+      text-transform: uppercase;
+      margin-top: 2px;
+    }
+
+    .header-center { flex: 1; text-align: center; }
+    .brand-stripe {
+      width: 85%;
+      height: 3px;
+      margin: 0 auto 4px;
+      background: linear-gradient(90deg, var(--emi-red), var(--copper), var(--emi-red));
+    }
+    .header-center h1 {
+      margin: 0;
+      font-family: Georgia, serif;
+      font-size: 21px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--charcoal);
+      text-shadow: 0 1px 0 rgba(255,255,255,0.7);
+    }
+    .header-center .studio-line {
+      margin: 2px 0 0;
+      font-size: 8px;
+      letter-spacing: 0.08em;
+      color: var(--emi-red);
+      text-transform: uppercase;
+    }
+    .header-center .subtitle {
+      margin: 2px 0 0;
+      font-size: 9px;
+      letter-spacing: 0.1em;
+      color: var(--copper);
+      text-transform: uppercase;
+    }
+
+    .vu-bezel {
+      width: 520px;
+      padding: 10px 12px 8px;
+      margin-bottom: 12px;
+      background: linear-gradient(180deg, #C8C0B0 0%, #989080 100%);
+      border: 3px solid var(--charcoal);
+      border-radius: 4px;
+      box-shadow: inset 0 2px 6px rgba(255,255,255,0.4), 0 3px 6px rgba(0,0,0,0.25);
+    }
+
+    .vu-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: 6px;
+      padding: 0 4px;
+    }
+
+    .vu-header .vu-silk {
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: 0.2em;
+      color: var(--charcoal);
+      text-shadow: 0 1px 0 rgba(255,255,255,0.4);
+    }
+
+    .vu-header .wet-silk {
+      font-size: 8px;
+      letter-spacing: 0.14em;
+      color: var(--brown);
+      text-transform: uppercase;
+    }
+
+    .vu-stereo-row {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+    }
+
+    .vu-unit {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+    }
+
+    .vu-channel {
+      font-family: Georgia, serif;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.15em;
+      color: var(--charcoal);
+      text-shadow: 0 1px 0 rgba(255,255,255,0.45);
+    }
+
+    .vu-meter {
+      display: block;
+      width: 234px;
+      height: 118px;
+      background: linear-gradient(180deg, #ECE8DE 0%, var(--vu-glass) 55%, #B8B0A0 100%);
+      border: 2px solid #4A443C;
+      border-radius: 2px;
+      box-shadow: inset 0 1px 3px rgba(0,0,0,0.12);
+    }
+
+    .vu-legend {
+      display: flex;
+      justify-content: space-between;
+      font-size: 7px;
+      letter-spacing: 0.06em;
+      color: var(--brown);
+      margin-top: 6px;
+      padding: 0 8px;
+      width: 100%;
+    }
+    .vu-legend .red { color: var(--vu-red); font-weight: 600; }
+
+    .knob-row {
+      display: flex;
+      justify-content: center;
+      gap: 32px;
+      margin-bottom: 14px;
+    }
+    .knob-row.medium { gap: 28px; margin-bottom: 4px; }
+
+    .control {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .label-plate {
+      padding: 3px 10px 2px;
+      background: linear-gradient(180deg, #D8D0C0 0%, #C8C0B0 100%);
+      border: 1px solid #9A9088;
+    }
+
+    .control .label {
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      color: var(--charcoal);
+      text-transform: uppercase;
+    }
+
+    .control .value {
+      font-size: 9px;
+      font-variant-numeric: tabular-nums;
+      color: var(--brown);
+    }
+
+    .knob-housing {
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .knob-housing.large { width: 110px; height: 110px; }
+    .knob-housing.medium { width: 94px; height: 94px; }
+    .knob-ticks { position: absolute; pointer-events: none; }
+
+    .knob {
+      position: relative;
+      z-index: 2;
+      border-radius: 50%;
+      cursor: ns-resize;
+      border: 3px solid #2A241C;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.35), inset 0 2px 5px rgba(255,255,255,0.45);
+      background: radial-gradient(circle at 38% 32%, var(--knob-cap) 0%, #C4B8A8 35%, #7A6A58 70%, #4A3C30 100%);
+    }
+    .knob.large { width: 88px; height: 88px; }
+    .knob.medium { width: 72px; height: 72px; }
+
+    .knob-indicator {
+      position: absolute;
+      top: 7px;
+      left: 50%;
+      width: 4px;
+      height: 28px;
+      background: linear-gradient(180deg, #F8F4EC, #1A1A1A 85%);
+      border-radius: 2px;
+      transform-origin: center 36px;
+      transform: translateX(-50%) rotate(-135deg);
+      z-index: 3;
+    }
+    .knob.medium .knob-indicator {
+      height: 22px;
+      transform-origin: center 30px;
+    }
+  </style>
+</head>
+<body>
+  <div id="rack-chassis">
+    <div id="faceplate">
+      <span class="screw tl"></span><span class="screw tr"></span>
+      <span class="screw bl"></span><span class="screw br"></span>
+
+      <div class="header-band">
+        <div class="metal-plate model">
+          <div class="plate-line1">Plate &amp; Chamber</div>
+          <div class="plate-line2">Type 140A</div>
+        </div>
+        <div class="header-center">
+          <div class="brand-stripe"></div>
+          <h1>My Reverb</h1>
+          <p class="studio-line">Abbey Road Style</p>
+          <p class="subtitle">EMI London · Stereo Reverb</p>
+        </div>
+        <div class="metal-plate serial">
+          <div class="plate-line1">No. 64-LDN</div>
+          <div class="plate-line2">Made in England</div>
+        </div>
+      </div>
+
+      <div class="vu-bezel">
+        <div class="vu-header">
+          <span class="vu-silk">STEREO VU</span>
+          <span class="wet-silk">Wet Return · L / R</span>
+        </div>
+        <div class="vu-stereo-row">
+          <div class="vu-unit">
+            <span class="vu-channel">L</span>
+            <canvas class="vu-meter" id="wetMeterL" width="234" height="118"></canvas>
+          </div>
+          <div class="vu-unit">
+            <span class="vu-channel">R</span>
+            <canvas class="vu-meter" id="wetMeterR" width="234" height="118"></canvas>
+          </div>
+        </div>
+        <div class="vu-legend">
+          <span>−20</span>
+          <span>−10</span>
+          <span>0 dB</span>
+          <span class="red">+1 +2 +3 OVER</span>
+        </div>
+      </div>
+
+      <div class="controls-area">
+      <div class="knob-row large">
+        <div class="control" id="size-control">
+          <div class="knob-housing large">
+            <canvas class="knob-ticks" data-size="large" width="110" height="110"></canvas>
+            <div class="knob large" data-param="size"><div class="knob-indicator" id="size-indicator"></div></div>
+          </div>
+          <div class="label-plate"><span class="label">SIZE</span></div>
+          <span class="value" id="size-value">35%</span>
+        </div>
+        <div class="control" id="decay-control">
+          <div class="knob-housing large">
+            <canvas class="knob-ticks" data-size="large" width="110" height="110"></canvas>
+            <div class="knob large" data-param="decay"><div class="knob-indicator" id="decay-indicator"></div></div>
+          </div>
+          <div class="label-plate"><span class="label">DECAY</span></div>
+          <span class="value" id="decay-value">2.5 s</span>
+        </div>
+        <div class="control" id="mix-control">
+          <div class="knob-housing large">
+            <canvas class="knob-ticks" data-size="large" width="110" height="110"></canvas>
+            <div class="knob large" data-param="mix"><div class="knob-indicator" id="mix-indicator"></div></div>
+          </div>
+          <div class="label-plate"><span class="label">MIX</span></div>
+          <span class="value" id="mix-value">25%</span>
+        </div>
+      </div>
+
+      <div class="knob-row medium">
+        <div class="control" id="predelay-control">
+          <div class="knob-housing medium">
+            <canvas class="knob-ticks" data-size="medium" width="94" height="94"></canvas>
+            <div class="knob medium" data-param="predelay"><div class="knob-indicator" id="predelay-indicator"></div></div>
+          </div>
+          <div class="label-plate"><span class="label">PRE-DLY</span></div>
+          <span class="value" id="predelay-value">20 ms</span>
+        </div>
+        <div class="control" id="damping-control">
+          <div class="knob-housing medium">
+            <canvas class="knob-ticks" data-size="medium" width="94" height="94"></canvas>
+            <div class="knob medium" data-param="damping"><div class="knob-indicator" id="damping-indicator"></div></div>
+          </div>
+          <div class="label-plate"><span class="label">DAMP</span></div>
+          <span class="value" id="damping-value">45%</span>
+        </div>
+        <div class="control" id="width-control">
+          <div class="knob-housing medium">
+            <canvas class="knob-ticks" data-size="medium" width="94" height="94"></canvas>
+            <div class="knob medium" data-param="width"><div class="knob-indicator" id="width-indicator"></div></div>
+          </div>
+          <div class="label-plate"><span class="label">WIDTH</span></div>
+          <span class="value" id="width-value">70%</span>
+        </div>
+      </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const MIN_DEG = -135, MAX_DEG = 135, SPAN = MAX_DEG - MIN_DEG;
+      const VU_DB = [-20, -10, -7, -5, -3, 0, 1, 2, 3];
+
+      const params = {
+        size: { norm: 0.35, default: 0.35 },
+        decay: { norm: decayToNorm(2.5), default: decayToNorm(2.5) },
+        mix: { norm: 0.25, default: 0.25 },
+        predelay: { norm: 0.1, default: 0.1 },
+        damping: { norm: 0.45, default: 0.45 },
+        width: { norm: 0.70, default: 0.70 }
+      };
+
+      function decayToNorm(sec) { return Math.log(sec / 0.1) / Math.log(200); }
+      function normToDecay(n) { return 0.1 * Math.pow(200, n); }
+      function normToDeg(n) { return MIN_DEG + n * SPAN; }
+      function degToNorm(deg) { return Math.max(0, Math.min(1, (deg - MIN_DEG) / SPAN)); }
+
+      function dbToAngle(db) {
+        const min = VU_DB[0], max = VU_DB[VU_DB.length - 1];
+        const t = (db - min) / (max - min);
+        const a0 = Math.PI * 1.05, a1 = Math.PI * 1.95;
+        return a0 + t * (a1 - a0);
+      }
+
+      function formatValue(id, norm) {
+        if (id === 'decay') return normToDecay(norm).toFixed(1) + ' s';
+        if (id === 'predelay') return Math.round(norm * 200) + ' ms';
+        return Math.round(norm * 100) + '%';
+      }
+
+      function setKnobVisual(id, norm) {
+        const ind = document.getElementById(id + '-indicator');
+        const val = document.getElementById(id + '-value');
+        if (ind) ind.style.transform = `translateX(-50%) rotate(${normToDeg(norm)}deg)`;
+        if (val) val.textContent = formatValue(id, norm);
+      }
+      Object.keys(params).forEach(id => setKnobVisual(id, params[id].norm));
+
+      document.querySelectorAll('.knob-ticks').forEach(canvas => {
+        const ctx = canvas.getContext('2d');
+        const w = canvas.width, h = canvas.height, cx = w / 2, cy = h / 2;
+        const isLarge = canvas.dataset.size === 'large';
+        const outer = isLarge ? 52 : 42;
+        const count = isLarge ? 13 : 11;
+        const start = -135 * Math.PI / 180, end = 135 * Math.PI / 180;
+        ctx.clearRect(0, 0, w, h);
+        for (let i = 0; i < count; i++) {
+          const t = i / (count - 1);
+          const a = start + t * (end - start);
+          const major = i === 0 || i === count - 1 || i === Math.floor(count / 2);
+          const len = major ? 8 : 5;
+          ctx.strokeStyle = major ? '#1F1F1F' : '#5C4A3A';
+          ctx.lineWidth = major ? 2 : 1;
+          ctx.beginPath();
+          ctx.moveTo(cx + Math.sin(a) * (outer - len), cy - Math.cos(a) * (outer - len));
+          ctx.lineTo(cx + Math.sin(a) * outer, cy - Math.cos(a) * outer);
+          ctx.stroke();
+        }
+      });
+
+      function drawNeedleVu(canvas, level) {
+        const vctx = canvas.getContext('2d');
+        const w = canvas.width, h = canvas.height;
+        const cx = w / 2, cy = h - 12;
+        const r = Math.min(w, h) * 0.48;
+
+        vctx.fillStyle = '#E8E4DA';
+        vctx.fillRect(0, 0, w, h);
+
+        vctx.fillStyle = 'rgba(90, 138, 98, 0.14)';
+        vctx.beginPath();
+        vctx.moveTo(cx, cy);
+        vctx.arc(cx, cy, r - 4, dbToAngle(-20), dbToAngle(-3), false);
+        vctx.closePath();
+        vctx.fill();
+
+        vctx.fillStyle = 'rgba(158, 42, 50, 0.32)';
+        vctx.beginPath();
+        vctx.moveTo(cx, cy);
+        vctx.arc(cx, cy, r - 4, dbToAngle(0), dbToAngle(3), false);
+        vctx.closePath();
+        vctx.fill();
+
+        const a0 = Math.PI * 1.05, a1 = Math.PI * 1.95;
+        vctx.strokeStyle = '#2B2B2B';
+        vctx.lineWidth = 2.5;
+        vctx.beginPath();
+        vctx.arc(cx, cy, r, a0, a1, false);
+        vctx.stroke();
+
+        VU_DB.forEach(db => {
+          const a = dbToAngle(db);
+          const overload = db >= 0;
+          const inner = r - (overload ? 18 : 14);
+          vctx.strokeStyle = overload ? '#9E2A32' : '#4F3F32';
+          vctx.lineWidth = db === 0 || db === 3 ? 2.5 : 1.5;
+          vctx.beginPath();
+          vctx.moveTo(cx + Math.cos(a) * inner, cy + Math.sin(a) * inner);
+          vctx.lineTo(cx + Math.cos(a) * r, cy + Math.sin(a) * r);
+          vctx.stroke();
+
+          if (db === -20 || db === -10 || db === 0 || db === 3) {
+            vctx.fillStyle = overload ? '#9E2A32' : '#1F1F1F';
+            vctx.font = db === 3 ? 'bold 9px sans-serif' : '8px sans-serif';
+            vctx.textAlign = 'center';
+            vctx.fillText(db > 0 ? '+' + db : String(db),
+              cx + Math.cos(a) * (r - 28), cy + Math.sin(a) * (r - 28) + 3);
+          }
+        });
+
+        const dbNeedle = -20 + level * 22;
+        const na = dbToAngle(Math.min(3, dbNeedle));
+        vctx.strokeStyle = '#141414';
+        vctx.lineWidth = 2.5;
+        vctx.beginPath();
+        vctx.moveTo(cx, cy);
+        vctx.lineTo(cx + Math.cos(na) * (r - 8), cy + Math.sin(na) * (r - 8));
+        vctx.stroke();
+
+        vctx.fillStyle = '#A66B35';
+        vctx.beginPath();
+        vctx.arc(cx, cy, 5, 0, Math.PI * 2);
+        vctx.fill();
+        vctx.strokeStyle = '#2A241C';
+        vctx.stroke();
+
+        const grd = vctx.createLinearGradient(0, 0, 0, h * 0.35);
+        grd.addColorStop(0, 'rgba(255,255,255,0.3)');
+        grd.addColorStop(1, 'transparent');
+        vctx.fillStyle = grd;
+        vctx.fillRect(0, 0, w, h * 0.4);
+      }
+
+      const vuL = document.getElementById('wetMeterL');
+      const vuR = document.getElementById('wetMeterR');
+      let vuNormL = 0.32, vuNormR = 0.38;
+
+      drawNeedleVu(vuL, vuNormL);
+      drawNeedleVu(vuR, vuNormR);
+      setInterval(() => {
+        const base = 0.18 + params.mix.norm * 0.58;
+        const t = Date.now() / 850;
+        vuNormL = Math.min(1, base + Math.sin(t) * 0.07 + params.width.norm * 0.04);
+        vuNormR = Math.min(1, base + Math.sin(t + 0.4) * 0.07 + (1 - params.width.norm) * 0.04);
+        drawNeedleVu(vuL, vuNormL);
+        drawNeedleVu(vuR, vuNormR);
+      }, 40);
+
+      document.querySelectorAll('.knob').forEach(knob => {
+        const paramId = knob.dataset.param;
+        const indicator = knob.querySelector('.knob-indicator');
+        let dragging = false, lastY = 0;
+        let rotation = normToDeg(params[paramId].norm);
+        indicator.style.transform = `translateX(-50%) rotate(${rotation}deg)`;
+        knob.addEventListener('mousedown', (e) => { dragging = true; lastY = e.clientY; e.preventDefault(); });
+        knob.addEventListener('dblclick', () => {
+          params[paramId].norm = params[paramId].default;
+          rotation = normToDeg(params[paramId].norm);
+          setKnobVisual(paramId, params[paramId].norm);
+        });
+        document.addEventListener('mousemove', (e) => {
+          if (!dragging) return;
+          rotation += (lastY - e.clientY) * 0.45;
+          rotation = Math.max(MIN_DEG, Math.min(MAX_DEG, rotation));
+          lastY = e.clientY;
+          params[paramId].norm = degToNorm(rotation);
+          indicator.style.transform = `translateX(-50%) rotate(${rotation}deg)`;
+          setKnobVisual(paramId, params[paramId].norm);
+        });
+        document.addEventListener('mouseup', () => { dragging = false; });
+      });
+
+      console.log('MyReverb v4 preview loaded');
+    });
+  </script>
+</body>
+</html>

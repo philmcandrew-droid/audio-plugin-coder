@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MyReverb v3</title>
+  <style>
+    :root {
+      --chassis: #3A3228;
+      --chassis-edge: #2A241C;
+      --bg-panel: #EDE6D6;
+      --brown: #4F3F32;
+      --charcoal: #1F1F1F;
+      --copper: #A66B35;
+      --emi-red: #7A2230;
+      --knob-cap: #E8E2D8;
+      --vu-glass: #D8D0C0;
+      --screw: #8A8278;
+      --plate-metal: linear-gradient(145deg, #D4CEC4 0%, #A8A298 45%, #8A8478 100%);
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 540px;
+      height: 440px;
+      overflow: hidden;
+      background: #141210;
+      user-select: none;
+    }
+
+    #rack-chassis {
+      width: 540px;
+      height: 440px;
+      padding: 10px;
+      background: linear-gradient(165deg, #4A4034 0%, var(--chassis) 40%, var(--chassis-edge) 100%);
+      box-shadow: 0 8px 32px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.08);
+      border-radius: 4px;
+    }
+
+    #faceplate {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      background-color: var(--bg-panel);
+      background-image:
+        url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+      box-shadow: inset 0 4px 12px rgba(0,0,0,0.12), inset 0 0 0 1px rgba(255,255,255,0.35);
+      border-radius: 2px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 16px 18px 18px;
+    }
+
+    .screw {
+      position: absolute;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 30% 28%, #B5AD9E, var(--screw) 55%, #5A5248);
+      border: 1px solid #4A443C;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.4);
+    }
+    .screw::after {
+      content: '';
+      position: absolute;
+      top: 50%; left: 15%; right: 15%;
+      height: 1px;
+      background: #2A241C;
+      transform: translateY(-50%);
+    }
+    .screw.tl { top: 12px; left: 12px; }
+    .screw.tr { top: 12px; right: 12px; }
+    .screw.bl { bottom: 12px; left: 12px; }
+    .screw.br { bottom: 12px; right: 12px; }
+
+    .header-band {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      width: 100%;
+      max-width: 500px;
+      margin-bottom: 8px;
+      gap: 8px;
+    }
+
+    .metal-plate {
+      flex: 0 0 auto;
+      padding: 6px 10px;
+      background: var(--plate-metal);
+      border: 1px solid #6A6458;
+      border-radius: 2px;
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,0.5),
+        0 1px 3px rgba(0,0,0,0.25);
+      min-width: 108px;
+    }
+
+    .metal-plate.serial { min-width: 92px; text-align: right; padding: 6px 8px; }
+
+    .metal-plate .plate-line1 {
+      font-family: 'Franklin Gothic Medium', 'Arial Narrow', sans-serif;
+      font-size: 8px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      color: var(--charcoal);
+      text-transform: uppercase;
+      line-height: 1.3;
+    }
+
+    .metal-plate .plate-line2 {
+      font-size: 7px;
+      letter-spacing: 0.06em;
+      color: #5A5248;
+      text-transform: uppercase;
+      margin-top: 2px;
+    }
+
+    .header-center {
+      flex: 1;
+      text-align: center;
+      padding-top: 2px;
+    }
+
+    .brand-stripe {
+      width: 85%;
+      height: 3px;
+      margin: 0 auto 5px;
+      background: linear-gradient(90deg, var(--emi-red), var(--copper), var(--emi-red));
+      border-radius: 1px;
+    }
+
+    .header-center h1 {
+      margin: 0;
+      font-family: Georgia, 'Times New Roman', serif;
+      font-size: 22px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--charcoal);
+      text-shadow: 0 1px 0 rgba(255,255,255,0.7), 0 -1px 0 rgba(120,110,95,0.5);
+    }
+
+    .header-center .subtitle {
+      margin: 4px 0 0;
+      font-family: 'Franklin Gothic Medium', sans-serif;
+      font-size: 9px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--copper);
+    }
+
+    .header-center .studio-line {
+      margin: 2px 0 0;
+      font-size: 8px;
+      letter-spacing: 0.08em;
+      color: var(--emi-red);
+      text-transform: uppercase;
+      opacity: 0.9;
+    }
+
+    .vu-bezel {
+      width: 440px;
+      padding: 8px 10px 6px;
+      margin-bottom: 22px;
+      background: linear-gradient(180deg, #C8C0B0 0%, #A8A090 100%);
+      border: 2px solid var(--charcoal);
+      border-radius: 3px;
+      box-shadow: inset 0 2px 4px rgba(255,255,255,0.35), 0 2px 4px rgba(0,0,0,0.2);
+    }
+
+    .vu-label {
+      font-size: 8px;
+      letter-spacing: 0.12em;
+      color: var(--charcoal);
+      text-align: center;
+      margin-bottom: 3px;
+    }
+
+    #wetMeter {
+      display: block;
+      width: 420px;
+      height: 72px;
+      margin: 0 auto;
+      background: linear-gradient(180deg, #E8E4DA 0%, var(--vu-glass) 100%);
+      border: 1px solid #5A5248;
+    }
+
+    .knob-row {
+      display: flex;
+      justify-content: center;
+      gap: 32px;
+      margin-bottom: 18px;
+    }
+    .knob-row.medium { gap: 28px; margin-bottom: 0; }
+
+    .control {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .label-plate {
+      padding: 3px 10px 2px;
+      background: linear-gradient(180deg, #D8D0C0 0%, #C8C0B0 100%);
+      border: 1px solid #9A9088;
+      border-radius: 1px;
+      box-shadow: inset 0 1px 2px rgba(0,0,0,0.08);
+    }
+
+    .control .label {
+      font-family: 'Franklin Gothic Medium', sans-serif;
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      color: var(--charcoal);
+      text-transform: uppercase;
+    }
+
+    .control .value {
+      font-size: 9px;
+      font-variant-numeric: tabular-nums;
+      color: var(--brown);
+    }
+
+    .knob-housing {
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .knob-housing.large { width: 110px; height: 110px; }
+    .knob-housing.medium { width: 94px; height: 94px; }
+
+    .knob-ticks { position: absolute; pointer-events: none; }
+
+    .knob {
+      position: relative;
+      z-index: 2;
+      border-radius: 50%;
+      cursor: ns-resize;
+      border: 3px solid #2A241C;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.35), inset 0 2px 5px rgba(255,255,255,0.45);
+      background: radial-gradient(circle at 38% 32%, var(--knob-cap) 0%, #C4B8A8 35%, #7A6A58 70%, #4A3C30 100%);
+    }
+    .knob.large { width: 88px; height: 88px; }
+    .knob.medium { width: 72px; height: 72px; }
+
+    .knob-indicator {
+      position: absolute;
+      top: 7px;
+      left: 50%;
+      width: 4px;
+      height: 28px;
+      background: linear-gradient(180deg, #F8F4EC, #1A1A1A 85%);
+      border-radius: 2px;
+      transform-origin: center 36px;
+      transform: translateX(-50%) rotate(-135deg);
+      z-index: 3;
+    }
+    .knob.medium .knob-indicator {
+      height: 22px;
+      top: 6px;
+      transform-origin: center 30px;
+    }
+  </style>
+</head>
+<body>
+  <div id="rack-chassis">
+    <div id="faceplate">
+      <span class="screw tl"></span><span class="screw tr"></span>
+      <span class="screw bl"></span><span class="screw br"></span>
+
+      <div class="header-band">
+        <div class="metal-plate model">
+          <div class="plate-line1">Plate &amp; Chamber</div>
+          <div class="plate-line2">Type 140A</div>
+        </div>
+        <div class="header-center">
+          <div class="brand-stripe"></div>
+          <h1>My Reverb</h1>
+          <p class="studio-line">Abbey Road Style</p>
+          <p class="subtitle">EMI London · Stereo Reverb</p>
+        </div>
+        <div class="metal-plate serial">
+          <div class="plate-line1">No. 64-LDN</div>
+          <div class="plate-line2">Made in England</div>
+        </div>
+      </div>
+
+      <div class="vu-bezel">
+        <div class="vu-label">WET LEVEL · VU</div>
+        <canvas id="wetMeter" width="420" height="72"></canvas>
+      </div>
+
+      <div class="knob-row large">
+        <div class="control" id="size-control">
+          <div class="knob-housing large">
+            <canvas class="knob-ticks" data-size="large" width="110" height="110"></canvas>
+            <div class="knob large" data-param="size"><div class="knob-indicator" id="size-indicator"></div></div>
+          </div>
+          <div class="label-plate"><span class="label">SIZE</span></div>
+          <span class="value" id="size-value">35%</span>
+        </div>
+        <div class="control" id="decay-control">
+          <div class="knob-housing large">
+            <canvas class="knob-ticks" data-size="large" width="110" height="110"></canvas>
+            <div class="knob large" data-param="decay"><div class="knob-indicator" id="decay-indicator"></div></div>
+          </div>
+          <div class="label-plate"><span class="label">DECAY</span></div>
+          <span class="value" id="decay-value">2.5 s</span>
+        </div>
+        <div class="control" id="mix-control">
+          <div class="knob-housing large">
+            <canvas class="knob-ticks" data-size="large" width="110" height="110"></canvas>
+            <div class="knob large" data-param="mix"><div class="knob-indicator" id="mix-indicator"></div></div>
+          </div>
+          <div class="label-plate"><span class="label">MIX</span></div>
+          <span class="value" id="mix-value">25%</span>
+        </div>
+      </div>
+
+      <div class="knob-row medium">
+        <div class="control" id="predelay-control">
+          <div class="knob-housing medium">
+            <canvas class="knob-ticks" data-size="medium" width="94" height="94"></canvas>
+            <div class="knob medium" data-param="predelay"><div class="knob-indicator" id="predelay-indicator"></div></div>
+          </div>
+          <div class="label-plate"><span class="label">PRE-DLY</span></div>
+          <span class="value" id="predelay-value">20 ms</span>
+        </div>
+        <div class="control" id="damping-control">
+          <div class="knob-housing medium">
+            <canvas class="knob-ticks" data-size="medium" width="94" height="94"></canvas>
+            <div class="knob medium" data-param="damping"><div class="knob-indicator" id="damping-indicator"></div></div>
+          </div>
+          <div class="label-plate"><span class="label">DAMP</span></div>
+          <span class="value" id="damping-value">45%</span>
+        </div>
+        <div class="control" id="width-control">
+          <div class="knob-housing medium">
+            <canvas class="knob-ticks" data-size="medium" width="94" height="94"></canvas>
+            <div class="knob medium" data-param="width"><div class="knob-indicator" id="width-indicator"></div></div>
+          </div>
+          <div class="label-plate"><span class="label">WIDTH</span></div>
+          <span class="value" id="width-value">70%</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const MIN_DEG = -135, MAX_DEG = 135, SPAN = MAX_DEG - MIN_DEG;
+      const params = {
+        size: { norm: 0.35, default: 0.35 },
+        decay: { norm: decayToNorm(2.5), default: decayToNorm(2.5) },
+        mix: { norm: 0.25, default: 0.25 },
+        predelay: { norm: 0.1, default: 0.1 },
+        damping: { norm: 0.45, default: 0.45 },
+        width: { norm: 0.70, default: 0.70 }
+      };
+
+      function decayToNorm(sec) { return Math.log(sec / 0.1) / Math.log(200); }
+      function normToDecay(n) { return 0.1 * Math.pow(200, n); }
+      function normToDeg(n) { return MIN_DEG + n * SPAN; }
+      function degToNorm(deg) { return Math.max(0, Math.min(1, (deg - MIN_DEG) / SPAN)); }
+
+      function formatValue(id, norm) {
+        if (id === 'decay') return normToDecay(norm).toFixed(1) + ' s';
+        if (id === 'predelay') return Math.round(norm * 200) + ' ms';
+        return Math.round(norm * 100) + '%';
+      }
+
+      function setKnobVisual(id, norm) {
+        const ind = document.getElementById(id + '-indicator');
+        const val = document.getElementById(id + '-value');
+        if (ind) ind.style.transform = `translateX(-50%) rotate(${normToDeg(norm)}deg)`;
+        if (val) val.textContent = formatValue(id, norm);
+      }
+      Object.keys(params).forEach(id => setKnobVisual(id, params[id].norm));
+
+      document.querySelectorAll('.knob-ticks').forEach(canvas => {
+        const ctx = canvas.getContext('2d');
+        const w = canvas.width, h = canvas.height, cx = w / 2, cy = h / 2;
+        const isLarge = canvas.dataset.size === 'large';
+        const outer = isLarge ? 52 : 42;
+        const count = isLarge ? 13 : 11;
+        const start = -135 * Math.PI / 180, end = 135 * Math.PI / 180;
+        ctx.clearRect(0, 0, w, h);
+        for (let i = 0; i < count; i++) {
+          const t = i / (count - 1);
+          const a = start + t * (end - start);
+          const major = i === 0 || i === count - 1 || i === Math.floor(count / 2);
+          const len = major ? 8 : 5;
+          ctx.strokeStyle = major ? '#1F1F1F' : '#5C4A3A';
+          ctx.lineWidth = major ? 2 : 1;
+          ctx.beginPath();
+          ctx.moveTo(cx + Math.sin(a) * (outer - len), cy - Math.cos(a) * (outer - len));
+          ctx.lineTo(cx + Math.sin(a) * outer, cy - Math.cos(a) * outer);
+          ctx.stroke();
+        }
+      });
+
+      const vu = document.getElementById('wetMeter');
+      const vctx = vu.getContext('2d');
+      let vuNorm = 0.35;
+
+      function drawNeedleVu(level) {
+        const w = vu.width, h = vu.height, cx = w / 2, cy = h - 6, r = w * 0.42;
+        vctx.fillStyle = '#E8E4DA';
+        vctx.fillRect(0, 0, w, h);
+        const a0 = Math.PI * 1.12, a1 = Math.PI * 1.88;
+        vctx.strokeStyle = '#2B2B2B';
+        vctx.lineWidth = 2;
+        vctx.beginPath();
+        vctx.arc(cx, cy, r, a0, a1, false);
+        vctx.stroke();
+        [-20, -10, -7, -5, -3, 0, 3].forEach((db, i, arr) => {
+          const t = i / (arr.length - 1);
+          const a = a0 + t * (a1 - a0);
+          vctx.strokeStyle = db >= 0 ? '#7A2230' : '#4F3F32';
+          vctx.lineWidth = db === 0 ? 2 : 1;
+          vctx.beginPath();
+          vctx.moveTo(cx + Math.cos(a) * (r - 12), cy + Math.sin(a) * (r - 12));
+          vctx.lineTo(cx + Math.cos(a) * r, cy + Math.sin(a) * r);
+          vctx.stroke();
+        });
+        const na = a0 + (0.12 + level * 0.76) * (a1 - a0);
+        vctx.strokeStyle = '#1A1A1A';
+        vctx.lineWidth = 2;
+        vctx.beginPath();
+        vctx.moveTo(cx, cy);
+        vctx.lineTo(cx + Math.cos(na) * (r - 6), cy + Math.sin(na) * (r - 6));
+        vctx.stroke();
+        vctx.fillStyle = '#A66B35';
+        vctx.beginPath();
+        vctx.arc(cx, cy, 4, 0, Math.PI * 2);
+        vctx.fill();
+      }
+
+      drawNeedleVu(vuNorm);
+      setInterval(() => {
+        vuNorm = 0.2 + params.mix.norm * 0.55 + Math.sin(Date.now() / 900) * 0.06;
+        drawNeedleVu(Math.min(1, vuNorm));
+      }, 40);
+
+      document.querySelectorAll('.knob').forEach(knob => {
+        const paramId = knob.dataset.param;
+        const indicator = knob.querySelector('.knob-indicator');
+        let dragging = false, lastY = 0;
+        let rotation = normToDeg(params[paramId].norm);
+        indicator.style.transform = `translateX(-50%) rotate(${rotation}deg)`;
+        knob.addEventListener('mousedown', (e) => { dragging = true; lastY = e.clientY; e.preventDefault(); });
+        knob.addEventListener('dblclick', () => {
+          params[paramId].norm = params[paramId].default;
+          rotation = normToDeg(params[paramId].norm);
+          setKnobVisual(paramId, params[paramId].norm);
+        });
+        document.addEventListener('mousemove', (e) => {
+          if (!dragging) return;
+          rotation += (lastY - e.clientY) * 0.45;
+          rotation = Math.max(MIN_DEG, Math.min(MAX_DEG, rotation));
+          lastY = e.clientY;
+          params[paramId].norm = degToNorm(rotation);
+          indicator.style.transform = `translateX(-50%) rotate(${rotation}deg)`;
+          setKnobVisual(paramId, params[paramId].norm);
+        });
+        document.addEventListener('mouseup', () => { dragging = false; });
+      });
+
+      console.log('MyReverb v3 preview loaded');
+    });
+  </script>
+</body>
+</html>

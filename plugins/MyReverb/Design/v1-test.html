@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MyReverb</title>
+  <style>
+    :root {
+      --bg-panel: #F5F0E6;
+      --bg-shadow: #E8E0D4;
+      --brown: #5C4A3A;
+      --charcoal: #2B2B2B;
+      --copper: #B87333;
+      --emi-red: #8B2635;
+      --knob-cap: #D4CFC4;
+      --vu-fill: #4A7C59;
+      --vu-trough: #C9C4B8;
+      --screw: #9A9088;
+      --screw-rim: #6B655C;
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 500px;
+      height: 400px;
+      overflow: hidden;
+      background: #1a1814;
+      font-family: 'Franklin Gothic Medium', 'Arial Narrow', 'Segoe UI', sans-serif;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    #plugin-ui {
+      position: relative;
+      width: 500px;
+      height: 400px;
+      background: var(--bg-panel);
+      box-shadow: inset 0 0 0 1px var(--bg-shadow), 0 4px 24px rgba(0,0,0,0.35);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 14px 16px 16px;
+    }
+
+    .screw {
+      position: absolute;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--screw);
+      border: 1px solid var(--screw-rim);
+    }
+    .screw.tl { top: 8px; left: 8px; }
+    .screw.tr { top: 8px; right: 8px; }
+    .screw.bl { bottom: 8px; left: 8px; }
+    .screw.br { bottom: 8px; right: 8px; }
+
+    .header {
+      text-align: center;
+      margin-bottom: 6px;
+    }
+
+    .header h1 {
+      margin: 0;
+      font-size: 18px;
+      font-weight: 600;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--charcoal);
+    }
+
+    .header .subtitle {
+      margin: 2px 0 0;
+      font-size: 10px;
+      font-weight: 400;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--copper);
+    }
+
+    .copper-rule {
+      width: 60%;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, var(--copper), transparent);
+      margin: 6px auto 10px;
+    }
+
+    .vu-section {
+      width: 420px;
+      margin-bottom: 18px;
+    }
+
+    .vu-label {
+      font-size: 9px;
+      letter-spacing: 0.1em;
+      color: var(--brown);
+      text-align: center;
+      margin-bottom: 4px;
+    }
+
+    #wetMeter {
+      width: 420px;
+      height: 36px;
+      display: block;
+      border: 2px solid var(--charcoal);
+      border-radius: 2px;
+      background: var(--vu-trough);
+      cursor: default;
+    }
+
+    .knob-row {
+      display: flex;
+      justify-content: center;
+      gap: 28px;
+      margin-bottom: 20px;
+    }
+
+    .knob-row.medium {
+      gap: 24px;
+      margin-bottom: 0;
+    }
+
+    .control {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .control .label {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      color: var(--charcoal);
+      text-transform: uppercase;
+    }
+
+    .knob-row.medium .control .label {
+      font-size: 10px;
+    }
+
+    .control .value {
+      font-size: 10px;
+      font-variant-numeric: tabular-nums;
+      color: var(--brown);
+      min-height: 14px;
+    }
+
+    .knob {
+      position: relative;
+      border-radius: 50%;
+      cursor: ns-resize;
+      box-shadow:
+        0 2px 4px rgba(0,0,0,0.25),
+        inset 0 1px 0 rgba(255,255,255,0.35);
+    }
+
+    .knob.large {
+      width: 80px;
+      height: 80px;
+      background: radial-gradient(circle at 35% 30%, var(--knob-cap) 0%, #A89888 45%, var(--brown) 100%);
+      border: 3px solid #3D3D3D;
+    }
+
+    .knob.medium {
+      width: 64px;
+      height: 64px;
+      background: radial-gradient(circle at 35% 30%, var(--knob-cap) 0%, #A89888 45%, var(--brown) 100%);
+      border: 2px solid #3D3D3D;
+    }
+
+    .knob-indicator {
+      position: absolute;
+      top: 8px;
+      left: 50%;
+      width: 3px;
+      background: var(--charcoal);
+      border-radius: 1px;
+      transform-origin: center bottom;
+      transform: translateX(-50%) rotate(-135deg);
+    }
+
+    .knob.large .knob-indicator { height: 22px; }
+    .knob.medium .knob-indicator { height: 18px; top: 6px; }
+  </style>
+</head>
+<body>
+  <div id="plugin-ui">
+    <span class="screw tl"></span>
+    <span class="screw tr"></span>
+    <span class="screw bl"></span>
+    <span class="screw br"></span>
+
+    <header class="header">
+      <h1>MyReverb</h1>
+      <p class="subtitle">Abbey Road Style · 1960s Plate &amp; Chamber</p>
+    </header>
+    <div class="copper-rule"></div>
+
+    <section class="vu-section">
+      <div class="vu-label">WET LEVEL</div>
+      <canvas id="wetMeter" width="420" height="36"></canvas>
+    </section>
+
+    <div class="knob-row large" id="space-row">
+      <div class="control" id="size-control">
+        <div class="knob large" id="size-knob" data-param="size" data-scale="linear01">
+          <div class="knob-indicator" id="size-indicator"></div>
+        </div>
+        <span class="label">SIZE</span>
+        <span class="value" id="size-value">35%</span>
+      </div>
+      <div class="control" id="decay-control">
+        <div class="knob large" id="decay-knob" data-param="decay" data-scale="logDecay">
+          <div class="knob-indicator" id="decay-indicator"></div>
+        </div>
+        <span class="label">DECAY</span>
+        <span class="value" id="decay-value">2.5 s</span>
+      </div>
+      <div class="control" id="mix-control">
+        <div class="knob large" id="mix-knob" data-param="mix" data-scale="linear01">
+          <div class="knob-indicator" id="mix-indicator"></div>
+        </div>
+        <span class="label">MIX</span>
+        <span class="value" id="mix-value">25%</span>
+      </div>
+    </div>
+
+    <div class="knob-row medium" id="tone-row">
+      <div class="control" id="predelay-control">
+        <div class="knob medium" id="predelay-knob" data-param="predelay" data-scale="predelay">
+          <div class="knob-indicator" id="predelay-indicator"></div>
+        </div>
+        <span class="label">PRE-DLY</span>
+        <span class="value" id="predelay-value">20 ms</span>
+      </div>
+      <div class="control" id="damping-control">
+        <div class="knob medium" id="damping-knob" data-param="damping" data-scale="linear01">
+          <div class="knob-indicator" id="damping-indicator"></div>
+        </div>
+        <span class="label">DAMP</span>
+        <span class="value" id="damping-value">45%</span>
+      </div>
+      <div class="control" id="width-control">
+        <div class="knob medium" id="width-knob" data-param="width" data-scale="linear01">
+          <div class="knob-indicator" id="width-indicator"></div>
+        </div>
+        <span class="label">WIDTH</span>
+        <span class="value" id="width-value">70%</span>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Preview mode — production JS moves to Source/ui/public/js/index.js with JUCE interop
+    document.addEventListener('DOMContentLoaded', () => {
+      const MIN_DEG = -135;
+      const MAX_DEG = 135;
+      const SPAN = MAX_DEG - MIN_DEG;
+
+      const params = {
+        size:    { norm: 0.35, default: 0.35, scale: 'linear01' },
+        decay:   { norm: decayToNorm(2.5), default: decayToNorm(2.5), scale: 'logDecay' },
+        mix:     { norm: 0.25, default: 0.25, scale: 'linear01' },
+        predelay:{ norm: 20 / 200, default: 20 / 200, scale: 'predelay' },
+        damping: { norm: 0.45, default: 0.45, scale: 'linear01' },
+        width:   { norm: 0.70, default: 0.70, scale: 'linear01' }
+      };
+
+      function decayToNorm(sec) {
+        const min = 0.1, max = 20;
+        return Math.log(sec / min) / Math.log(max / min);
+      }
+
+      function normToDecay(n) {
+        const min = 0.1, max = 20;
+        return min * Math.pow(max / min, n);
+      }
+
+      function normToDeg(n) {
+        return MIN_DEG + n * SPAN;
+      }
+
+      function degToNorm(deg) {
+        return Math.max(0, Math.min(1, (deg - MIN_DEG) / SPAN));
+      }
+
+      function formatValue(id, norm) {
+        switch (id) {
+          case 'decay': return normToDecay(norm).toFixed(1) + ' s';
+          case 'predelay': return Math.round(norm * 200) + ' ms';
+          default: return Math.round(norm * 100) + '%';
+        }
+      }
+
+      function setKnobVisual(id, norm) {
+        const ind = document.getElementById(id + '-indicator');
+        const val = document.getElementById(id + '-value');
+        if (ind) ind.style.transform = `translateX(-50%) rotate(${normToDeg(norm)}deg)`;
+        if (val) val.textContent = formatValue(id, norm);
+      }
+
+      Object.keys(params).forEach(id => setKnobVisual(id, params[id].norm));
+
+      // Canvas VU meter
+      const canvas = document.getElementById('wetMeter');
+      const ctx = canvas.getContext('2d');
+      let vuLevel = params.mix.norm * 0.6;
+
+      function drawVu(level) {
+        const w = canvas.width;
+        const h = canvas.height;
+        ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--vu-trough').trim();
+        ctx.fillRect(0, 0, w, h);
+
+        const segments = 24;
+        const segW = (w - 8) / segments;
+        const filled = Math.floor(level * segments);
+
+        for (let i = 0; i < segments; i++) {
+          const x = 4 + i * segW;
+          const gap = 2;
+          if (i < filled) {
+            const t = i / segments;
+            ctx.fillStyle = t > 0.85 ? '#8B2635' : getComputedStyle(document.documentElement).getPropertyValue('--vu-fill').trim();
+          } else {
+            ctx.fillStyle = 'rgba(0,0,0,0.08)';
+          }
+          ctx.fillRect(x, 4, segW - gap, h - 8);
+        }
+
+        ctx.strokeStyle = '#2B2B2B';
+        ctx.lineWidth = 1;
+        ctx.strokeRect(0.5, 0.5, w - 1, h - 1);
+      }
+
+      drawVu(vuLevel);
+
+      // Preview: gentle VU motion from mix
+      setInterval(() => {
+        vuLevel = 0.15 + params.mix.norm * 0.5 + Math.sin(Date.now() / 800) * 0.08;
+        drawVu(Math.min(1, vuLevel));
+      }, 50);
+
+      // Knob drag
+      document.querySelectorAll('.knob').forEach(knob => {
+        const paramId = knob.dataset.param;
+        const indicator = knob.querySelector('.knob-indicator');
+        let dragging = false;
+        let lastY = 0;
+        let rotation = normToDeg(params[paramId].norm);
+
+        indicator.style.transform = `translateX(-50%) rotate(${rotation}deg)`;
+
+        knob.addEventListener('mousedown', (e) => {
+          dragging = true;
+          lastY = e.clientY;
+          e.preventDefault();
+        });
+
+        knob.addEventListener('dblclick', () => {
+          params[paramId].norm = params[paramId].default;
+          setKnobVisual(paramId, params[paramId].norm);
+          rotation = normToDeg(params[paramId].norm);
+        });
+
+        document.addEventListener('mousemove', (e) => {
+          if (!dragging) return;
+          rotation += (lastY - e.clientY) * 0.45;
+          rotation = Math.max(MIN_DEG, Math.min(MAX_DEG, rotation));
+          lastY = e.clientY;
+          params[paramId].norm = degToNorm(rotation);
+          indicator.style.transform = `translateX(-50%) rotate(${rotation}deg)`;
+          setKnobVisual(paramId, params[paramId].norm);
+        });
+
+        document.addEventListener('mouseup', () => { dragging = false; });
+      });
+
+      console.log('MyReverb v1 preview — UI structure loaded');
+    });
+  </script>
+</body>
+</html>
